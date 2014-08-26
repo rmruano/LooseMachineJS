@@ -305,9 +305,9 @@
             enterCounter++;
             actionObject.setCurrentState(this);
             actionObject.enter(); // In case it's not active already
+            if (this.getAction().getDirector()) this.getAction().getDirector().enterState(this);
             //console.log("state enter "+actionObject.getId()+"/"+id);
             onEnter(this); // Trigger event
-            if (this.getAction().getDirector()) this.getAction().getDirector().enterState(this);
             return true;
         };
         this.leave = function () {

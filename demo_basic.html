@@ -19,41 +19,41 @@
     document.getElementById("test").addEventListener("click", function() {runBasicExample();});
     runBasicExample = function() {
          var myAction = (new LooseMachine.Action("test", {defaultState:"state1"}))
-            .setDirector(actionDirector) // Notifies it enter/leave events
+            .setDirector(actionDirector) // Notifies it enter/leave events on both Actions & ActionStates
             .onEnter(function(action) {
-                console.log("action enter bubbled "+action.getId());
+                console.log("Action onEnter:  "+action.getId());
             })
             .onLeave(function(action) {
-                console.log("action leave bubbled "+action.getId());
+                console.log("Action onLeave:  "+action.getId());
             })
             .addState( (new LooseMachine.ActionState("state1"))
                 .onEnter(function(actionState) {
-                    console.log("state enter bubbled "+actionState.getAction().getId()+"/"+actionState.getId());
+                    console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
                     alert(actionState.getAction().getId()+"/"+actionState.getId());
                     actionState.getAction().getState("state2").enter();
                 })
                 .onLeave(function(actionState) {
-                    console.log("state leave bubbled "+actionState.getAction().getId()+"/"+actionState.getId());
+                    console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
                 })
             )
             .addState( (new LooseMachine.ActionState("state2"))
                 .onEnter(function(actionState) {
-                    console.log("state enter bubbled "+actionState.getAction().getId()+"/"+actionState.getId());
+                    console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
                     alert(actionState.getAction().getId()+"/"+actionState.getId());
                     actionState.getAction().getState("state3").enter();
                 })
                 .onLeave(function(actionState) {
-                    console.log("state leave bubbled "+actionState.getAction().getId()+"/"+actionState.getId());
+                    console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
                 })
             )
             .addState( (new LooseMachine.ActionState("state3"))
                  .onEnter(function(actionState) {
-                     console.log("state enter bubbled "+actionState.getAction().getId()+"/"+actionState.getId());
+                     console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
                      alert(actionState.getAction().getId()+"/"+actionState.getId()+": ### COMPLETED! ###");
                      actionState.getAction().leave(); // Leave the action, it will be automatically reseted
                  })
                  .onLeave(function(actionState) {
-                     console.log("state leave bubbled "+actionState.getAction().getId()+"/"+actionState.getId());
+                     console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
                  })
             );
          myAction.enter();
