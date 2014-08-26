@@ -110,28 +110,16 @@
      */
     this.Action = function(id, options) {
         // Private vars
-        var currentState = false;
-        /* current state */
-        var active = false;
-        /* is active? */
-        var states = {};
-        /* Action states */
-        var onEnter = function (action) {
-        };
-        /* Placeholder for listener: Receives an Action object */
-        var onLeave = function (action) {
-        };
-        /* Placeholder for listener: Receives an Action object */
-        var enterCounter = 0;
-        /* Number of enters */
-        var leaveCounter = 0;
-        /* Number of leaves */
-        var director = false;
-        /* Placeholder for an action director */
-        var handlers = {};
-        /* Storage for custom handlers (methods) */
-        var data = {};
-        /* Custom action data to enable handlers to store temporary, action-wide data */
+        var currentState = false; /* current state */
+        var active = false; /* is active? */
+        var states = {}; /* Action states */
+        var onEnter = function (action) {}; /* Placeholder for listener: Receives an Action object */
+        var onLeave = function (action) {}; /* Placeholder for listener: Receives an Action object */
+        var enterCounter = 0; /* Number of enters */
+        var leaveCounter = 0; /* Number of leaves */
+        var director = false; /* Placeholder for an action director */
+        var handlers = {}; /* Storage for custom handlers (methods) */
+        var data = {}; /* Custom action data to enable handlers to store temporary, action-wide data */
         // Options
         if ((typeof options == "undefined" || options == null)) options = false;
         options = self.extendOptions({
@@ -228,7 +216,7 @@
             return states[id];
         };
         this.setDirector = function (actionDirector) {
-            if (typeof actionDirector == "undefined" || !(actionDirector instanceof self.ActionDirector)) throw Error("Invalid director provided");
+            if (typeof actionDirector == "undefined" || !(actionDirector instanceof self.Director)) throw Error("Invalid director provided");
             director = actionDirector;
             return this;
         };
