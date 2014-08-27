@@ -153,8 +153,9 @@
             if (currentState) return currentState;
             return this.getDefaultState(); // Not found, return the default one
         };
-        this.setCurrentState = function (state) {
+        this.setCurrentState = function (state, doNotEnterFlag) {
             if (typeof state == "undefined") throw Error("Invalid state provided");
+            if (typeof doNotEnterFlag == "undefined") doNotEnterFlag = false;
             if (state && typeof state == "string") {
                 state = this.getState(state); // If it's not an ActionState object, get it from it's id
                 if (state == null) throw Error("Invalid state provided");
@@ -169,7 +170,7 @@
             // An actual state
             if (!(state instanceof self.ActionState)) throw Error("Invalid state provided");
             currentState = state;
-            currentState.enter(); // Enter current state
+            if (!doNotEnterFlag) currentState.enter(); // Enter current state
             return this;
         };
         this.enter = function () {
@@ -297,17 +298,20 @@
             return this;
         };
         this.enter = function () {
-            if (active) {
+            var isResume = false;
+            if (active) isResume = true;
+            //debugger;
+            /*if (active) {
                 actionObject.enter(); // In case is a persistent state, reenter the action
                 return false;
-            }
+            }*/
             active = true;
             enterCounter++;
-            actionObject.setCurrentState(this);
-            actionObject.enter(); // In case it's not active already
+            actionObject.setCurrentState(this, true);
+            if (!actionObject.isActive) {actionObject.enter();} // In case it's not active already
             if (this.getAction().getDirector()) this.getAction().getDirector().enterState(this);
             //console.log("state enter "+actionObject.getId()+"/"+id);
-            onEnter(this); // Trigger event
+            onEnter(this, isResume); // Trigger event
             return true;
         };
         this.leave = function () {
@@ -315,12 +319,12 @@
             active = false;
             leaveCounter++;
             //console.log("state leave "+actionObject.getId()+"/"+id);
-            if (actionObject.getCurrentState() == this) actionObject.setCurrentState(false); // No current state (because we're hiding this state)
+            if (actionObject.getCurrentState() == this) actionObject.setCurrentState(false, true); // No current state (because we're hiding this state)
             onLeave(this); // Trigger event
             if (this.getAction().getDirector()) this.getAction().getDirector().leaveState(this);
             return true;
         };
-        this.onEnter = function (callback) {
+        this.onEnter = function (callback, isResume) {
             if (typeof callback == "function") onEnter = callback;
             return this;
         };

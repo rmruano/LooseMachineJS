@@ -6,58 +6,62 @@
     <script src="LooseMachine.js"></script>
 </head>
 <body>
-<h3>LooseMachine demo</h3>
+<h3>LooseMachine basic demo</h3>
 <p>
-    <input type="button" id="test" value="TEST"/>
+    <input type="button" id="test" value="BEGIN"/>
 </p>
 <p>
     Open the dev tools to see the console debug output.
 </p>
 <script>
-    var runBasicExample, actionDirector = (new LooseMachine.Director()).enableDebug();
-// TEST
-    document.getElementById("test").addEventListener("click", function() {runBasicExample();});
-    runBasicExample = function() {
-         var myAction = (new LooseMachine.Action("test", {defaultState:"state1"}))
+    var runBasicExample,
+        actionDirector = (new LooseMachine.Director()).enableDebug(),
+        myAction = (new LooseMachine.Action("test", {defaultState:"state1"}))
             .setDirector(actionDirector) // Notifies it enter/leave events on both Actions & ActionStates
             .onEnter(function(action) {
                 console.log("Action onEnter:  "+action.getId());
-            })
-            .onLeave(function(action) {
+            }).onLeave(function(action) {
                 console.log("Action onLeave:  "+action.getId());
-            })
-            .addState( (new LooseMachine.ActionState("state1"))
-                .onEnter(function(actionState) {
-                    console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
-                    alert(actionState.getAction().getId()+"/"+actionState.getId());
-                    actionState.getAction().getState("state2").enter();
-                })
-                .onLeave(function(actionState) {
-                    console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
-                })
-            )
-            .addState( (new LooseMachine.ActionState("state2"))
-                .onEnter(function(actionState) {
-                    console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
-                    alert(actionState.getAction().getId()+"/"+actionState.getId());
-                    actionState.getAction().getState("state3").enter();
-                })
-                .onLeave(function(actionState) {
-                    console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
-                })
-            )
-            .addState( (new LooseMachine.ActionState("state3"))
-                 .onEnter(function(actionState) {
-                     console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
-                     alert(actionState.getAction().getId()+"/"+actionState.getId()+": ### COMPLETED! ###");
-                     actionState.getAction().leave(); // Leave the action, it will be automatically reseted
-                 })
-                 .onLeave(function(actionState) {
-                     console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
-                 })
+            }).addState( (new LooseMachine.ActionState("state1"))
+                    .onEnter(function(actionState) {
+                        console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                        alert(actionState.getAction().getId()+"/"+actionState.getId());
+                        // Synchronous advance to next state
+                        actionState.getAction().getState("state2").enter();
+                    })
+                    .onLeave(function(actionState) {
+                        console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    })
+            ).addState( (new LooseMachine.ActionState("state2"))
+                    .onEnter(function(actionState) {
+                        console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                        alert(actionState.getAction().getId()+"/"+actionState.getId());
+                        // Asynchronous behaviour is also supported, just don't forget to check if the current state
+                        // is active. This could represent an user triggering a button on the UI after 1 second
+                        setTimeout(function() {
+                           if (actionState.isActive()) {
+                                actionState.getAction().getState("state3").enter();
+                           }
+                        }, 1000);
+                    })
+                    .onLeave(function(actionState) {
+                        console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    })
+            ).addState( (new LooseMachine.ActionState("state3"))
+                    .onEnter(function(actionState) {
+                        console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                        alert(actionState.getAction().getId()+"/"+actionState.getId()+": ### COMPLETED! ###");
+                        actionState.getAction().leave(); // Leave the action, it will be automatically reseted
+                    })
+                    .onLeave(function(actionState) {
+                        console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    })
             );
-         myAction.enter();
-    }
+
+    // TEST
+    document.getElementById("test").addEventListener("click", function() {
+        myAction.enter();
+    });
 </script>
 
 </body>

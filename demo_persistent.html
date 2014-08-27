@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>LooseMachine Persistent demo</title>
+    <script src="LooseMachine.js"></script>
+</head>
+<body>
+<h3>LooseMachine persistent demo</h3>
+<p>
+    <input type="button" id="test" value="BEGIN ACTION"/>
+    <pre id="output"></pre>
+</p>
+<p>
+    Open the dev tools to see the console debug output.
+</p>
+<p>
+    This demo features a 4 step state machine in wich the 3rd one represents a persistent state (think of it as a
+    save-point state), if we leave the action at that stage, it will automatically be recovered when you return to it.
+</p>
+<script>
+    var runBasicExample,
+        actionDirector = (new LooseMachine.Director()).enableDebug(),
+        myAction = (new LooseMachine.Action("test", {defaultState:"state1"}))
+            .setDirector(actionDirector) // Notifies it enter/leave events on both Actions & ActionStates
+            .onEnter(function(action) {
+                console.log("Action onEnter:  "+action.getId());
+            }).onLeave(function(action) {
+                console.log("Action onLeave:  "+action.getId());
+                document.getElementById("output").innerHTML = "";
+            }).addState( (new LooseMachine.ActionState("state1"))
+                    .onEnter(function(actionState) {
+                        console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                        document.getElementById("output").innerHTML = "1  2  3  4\n>--|--|--| Current state: "+actionState.getAction().getId()+"/"+actionState.getId();
+                        if (confirm("Advance to next step (2/4)?")) {
+                            actionState.runHandler("next");
+                        } else {
+                            actionState.getAction().leave();
+                        }
+                    })
+                    .onLeave(function(actionState) {
+                        console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    })
+                    .addHandler("next", function(actionState) {
+                        actionState.getAction().getState("state2").enter();
+                    })
+            ).addState( (new LooseMachine.ActionState("state2"))
+                    .onEnter(function(actionState) {
+                        console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                        document.getElementById("output").innerHTML = "1  2  3  4\n|-->--|--| Current state: "+actionState.getAction().getId()+"/"+actionState.getId();
+                        if (confirm("Advance to next step (3/4)?\n\nNext step is a save-point, if you leave right now you'll start from step 1 if you resume the process.")) {
+                            actionState.runHandler("next");
+                        } else {
+                            actionState.getAction().leave();
+                        }
+                    })
+                    .onLeave(function(actionState) {
+                        console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    })
+                    .addHandler("next", function(actionState) {
+                        actionState.getAction().getState("persistent-state").enter();
+                    })
+            ).addState( (new LooseMachine.ActionState("persistent-state", {persist: true} /* This is a persistent action, you can leave the process here and it will continue from this next time */))
+                    .onEnter(function(actionState, isResume) {
+                        console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                        if (!isResume) {
+                            document.getElementById("output").innerHTML = "1  2  3  4\n|--|-->--| Current state: " + actionState.getAction().getId() + "/" + actionState.getId();
+                        } else {
+                            document.getElementById("output").innerHTML = "1  2  3  4\n|--|-->--| Current state (RESUMED): " + actionState.getAction().getId() + "/" + actionState.getId();
+                        }
+                        if (confirm("Advance to next step (4/4)?\n\nThis step is persistent, you can leave now and you'll continue from this step if you resume the process.")) {
+                            actionState.runHandler("next");
+                        } else {
+                            actionState.getAction().leave();
+                        }
+                    })
+                    .onLeave(function(actionState) {
+                        console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    })
+                    .addHandler("next", function(actionState) {
+                        actionState.getAction().getState("complete-state").enter();
+                    })
+            ).addState( (new LooseMachine.ActionState("complete-state"))
+                    .onEnter(function(actionState) {
+                        console.log("ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                        document.getElementById("output").innerHTML = "1  2  3  4\n|--|--|--> Current state: "+actionState.getAction().getId()+"/"+actionState.getId();
+                        alert("### COMPLETED! ###");
+                        actionState.runHandler("complete");
+                    })
+                    .onLeave(function(actionState) {
+                        console.log("ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    })
+                    .addHandler("complete", function(actionState) {
+                        // Save data or do whatever you want
+                        actionState.getAction().leave(); // Leave the action, it will be automatically reseted
+                    })
+            );
+
+    // TEST
+    document.getElementById("test").addEventListener("click", function() {
+        myAction.enter();
+    });
+</script>
+
+</body>
+</html>
