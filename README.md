@@ -1,7 +1,19 @@
 LooseMachineJS
 ==============
 
-A simple, easy to use JavaScript library for creating powerfool "loose" state machines with complete freedom. A multiple LooseMachine.Action can be handled by a LooseMachine.Director which acts as a semaphore between them (entering one action/machine will force leave the other active one). If you're looking for a standard FSM implementation take a look at the awesome https://github.com/jakesgordon/javascript-state-machine
+A simple, easy to use JavaScript library for creating powerfool "loose" state machines with complete freedom. If you're looking for a standard FSM implementation take a look at the awesome https://github.com/jakesgordon/javascript-state-machine
+
+What is an ...? 
+---------------
+#### LooseMachine.Action
+It's a state machine, it can contain infinite LooseMachine.ActionState with no particular order or restrictions, your code determines the workflow.
+
+#### LooseMachine.ActionState
+It's one of the possible states of the action. i.e: If you've got a 5 step registration process, each one will be an actionState.
+
+#### LooseMachine.Director
+It acts as a semaphore between multiple LooseMachine.Action to assure that only one is being running at the same time. Entering one action/machine will force any other active actions to be stopped (it will leave the action). It will also receive all the events of the Actions & ActionStates.
+
 
 Basic Usage
 -----------
@@ -64,7 +76,7 @@ Or, if you prefer a fluent interface:
 Advanced Usage
 --------------
 
-Take a look at *demo_persistent.html* and *demo_director.html* for advanced examples of persistent states & multiple actions (machines) working simultaneously.
+Take a look at `demo_persistent.html` and `demo_director.html` for advanced examples of persistent states & multiple actions (machine) working simultaneously.
 
 Supported events
 ----------------
