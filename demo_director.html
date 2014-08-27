@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>LooseMachine Persistent demo</title>
+    <script src="LooseMachine.js"></script>
+</head>
+<body>
+<h3>LooseMachine director demo with multiple actions (machines)</h3>
+<p>
+    <input type="button" id="test1" value="BEGIN ACTION 1 - ActionOne"/>
+    <pre id="output1"></pre>
+    <br/>
+    <input type="button" id="test2" value="BEGIN ACTION 2 - ActionTwo"/>
+    <pre id="output2"></pre>
+</p>
+<p>
+    Open the dev tools to see the console debug output.
+</p>
+<p>
+    This demo features two identical 4 step state machine tied into the same Director. In both actions, the 3rd step
+    represents a persistent state (think of it as a save-point state), if we leave the action at that stage, it will
+    automatically be recovered when you return to it.
+</p>
+<p>
+    The actionDirector acts as a semaphore, by automatically leaving one action if the other get's triggered. It will
+    also receive all events allowing you to perform both common & complex operations.
+</p>
+<script>
+    var runBasicExample,
+        actionDirector = (new LooseMachine.Director()).enableDebug(),
+        myActionOne = buildAction("myActionOne","output1"), // Helper function to return a demo action
+        myActionTwo = buildAction("myActionOne","output2"); // Helper function to return a demo action
+
+    // TEST
+        document.getElementById("test1").addEventListener("click", function() {
+            myActionOne.enter();
+        });
+        document.getElementById("test2").addEventListener("click", function() {
+            myActionTwo.enter();
+        });
+
+    function buildAction(id, output) {
+        return (new LooseMachine.Action(id, {defaultState:"state1"}))
+        .setDirector(actionDirector) // Notifies it enter/leave events on both Actions & ActionStates
+        .onEnter(function(action) {
+            console.log("  @"+id+" Action onEnter:  "+action.getId());
+        }).onLeave(function(action) {
+            console.log("  @"+id+" Action onLeave:  "+action.getId());
+            document.getElementById(output).innerHTML = "Current state: OUT";
+        }).addState( (new LooseMachine.ActionState("state1"))
+                .onEnter(function(actionState) {
+                    console.log("  @"+id+" ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    document.getElementById(output).innerHTML = "1  2  3  4\n>--|--|--| Current state: "+actionState.getAction().getId()+"/"+actionState.getId();
+                    if (confirm("Advance to next step (2/4)?")) {
+                        actionState.runHandler("next");
+                    } else {
+                        actionState.getAction().leave();
+                    }
+                })
+                .onLeave(function(actionState) {
+                    console.log("  @"+id+" ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                })
+                .addHandler("next", function(actionState) {
+                    actionState.getAction().getState("state2").enter();
+                })
+        ).addState( (new LooseMachine.ActionState("state2"))
+                .onEnter(function(actionState) {
+                    console.log("  @"+id+" ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    document.getElementById(output).innerHTML = "1  2  3  4\n|-->--|--| Current state: "+actionState.getAction().getId()+"/"+actionState.getId();
+                    if (confirm("Advance to next step (3/4)?\n\nNext step is a save-point, if you leave right now you'll start from step 1 if you resume the process.")) {
+                        actionState.runHandler("next");
+                    } else {
+                        actionState.getAction().leave();
+                    }
+                })
+                .onLeave(function(actionState) {
+                    console.log("  @"+id+" ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                })
+                .addHandler("next", function(actionState) {
+                    actionState.getAction().getState("persistent-state").enter();
+                })
+        ).addState( (new LooseMachine.ActionState("persistent-state", {persist: true} /* This is a persistent action, you can leave the process here and it will continue from this next time */))
+                .onEnter(function(actionState, isResume) {
+                    console.log("  @"+id+" ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    if (!isResume) {
+                        document.getElementById(output).innerHTML = "1  2  3  4\n|--|-->--| Current state: " + actionState.getAction().getId() + "/" + actionState.getId();
+                    } else {
+                        document.getElementById(output).innerHTML = "1  2  3  4\n|--|-->--| Current state (RESUMED): " + actionState.getAction().getId() + "/" + actionState.getId();
+                    }
+                    if (confirm("Advance to next step (4/4)?\n\nThis step is persistent, you can leave now and you'll continue from this step if you resume the process.")) {
+                        actionState.runHandler("next");
+                    } else {
+                        actionState.getAction().leave();
+                    }
+                })
+                .onLeave(function(actionState) {
+                    console.log("  @"+id+" ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                })
+                .addHandler("next", function(actionState) {
+                    actionState.getAction().getState("complete-state").enter();
+                })
+        ).addState( (new LooseMachine.ActionState("complete-state"))
+                .onEnter(function(actionState) {
+                    console.log("  @"+id+" ActionState onEnter:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                    document.getElementById(output).innerHTML = "1  2  3  4\n|--|--|--> Current state: "+actionState.getAction().getId()+"/"+actionState.getId();
+                    alert("### COMPLETED! ###");
+                    actionState.runHandler("complete");
+                })
+                .onLeave(function(actionState) {
+                    console.log("  @"+id+" ActionState onLeave:  "+actionState.getAction().getId()+"/"+actionState.getId());
+                })
+                .addHandler("complete", function(actionState) {
+                    // Save data or do whatever you want
+                    actionState.getAction().leave(); // Leave the action, it will be automatically reseted
+                })
+        )
+    }
+</script>
+
+</body>
+</html>
