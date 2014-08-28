@@ -76,7 +76,9 @@ Or, if you prefer a fluent interface:
 Advanced Usage
 --------------
 
-Take a look at `demo_persistent.html` and `demo_director.html` for advanced examples of persistent states & multiple actions (machine) working simultaneously.
+Take a look at `demo_persistent.html`, `demo_director.html` for examples of persistent states & multiple actions (machines) working simultaneously.
+
+Take a look at `demo_advanced.html` for advanced features and a more visual approach.
 
 Supported events
 ----------------

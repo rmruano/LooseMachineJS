@@ -1,0 +1,175 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <title>LooseMachine Advanced demo</title>
+    <script src="LooseMachine.js"></script>
+    <script src="//ajax.googleapis.com/ajax/libs/jquery/1.9.1/jquery.min.js"></script>
+    <style>
+        .actions {
+            overflow:auto;
+            margin-bottom:10px;
+        }
+        .action {
+            float:left;
+            width:30%;
+            margin-left:5%;
+            background-color:#eee;
+        }
+        .action:first-child {
+            margin-left:0;
+        }
+        .action-content {
+            padding:20px;
+        }
+    </style>
+</head>
+<body>
+<h3>LooseMachine advanced demo with multiple actions (3 machines)</h3>
+
+<div class="actions">
+    <div class="action" id="myActionOne">
+        <div class="action-content">
+            <h4>ActionOne</h4>
+        </div>
+    </div>
+    <div class="action" id="myActionTwo">
+        <div class="action-content">
+            <h4>ActionTwo</h4>
+        </div>
+    </div>
+    <div class="action" id="myActionThree">
+        <div class="action-content">
+            <h4>ActionThree</h4>
+        </div>
+    </div>
+</div>
+
+<p>
+    Open the dev tools to see the console debug output.
+</p>
+<p>
+    This demo features three identical 4 step state machine tied into the same Director. In all actions, the 3rd step
+    represents a persistent state (think of it as a save-point state), if we leave the action at that stage, it will
+    automatically be recovered when you return to it.
+</p>
+<p>
+    The actionDirector acts as a semaphore, by automatically leaving one action if the other get's triggered. It will
+    also receive all events allowing you to perform both common & complex operations. This use-case it's specially suited
+    if you have multiple modal windows, one for each actions and they cannot coexist simultaneously. If actions can
+    coexist just don't set an actionDirector and they will be completely independent.
+</p>
+
+<script>
+    var runBasicExample,
+        actionDirector = (new LooseMachine.Director()).enableDebug(),
+        myActionOne = buildAction("myActionOne",$("#myActionOne")), // Helper function to return a demo action
+        myActionTwo = buildAction("myActionOne",$("#myActionTwo")), // Helper function to return a demo action
+        myActionThree = buildAction("myActionThree",$("#myActionThree")); // Helper function to return a demo action
+
+    function buildAction(id, $container) {
+        var $content = $container.find(".action-content");
+        var $beginButton, $resetButton, $resumeButton, $nextButton, $currentState, $stateDescription, $stateProgress;
+
+        var action = (new LooseMachine.Action(id, {defaultState:"state1"}))
+            .setDirector(actionDirector) // Notifies it enter/leave events on both Actions & ActionStates
+            .onEnter(function(action) {
+                $beginButton.hide();
+                $resumeButton.hide();
+            }).onLeave(function(action) {
+                if (action.getCurrentState().getId()=="state1") {
+                    // Show begin button
+                    $beginButton.show();
+                } else {
+                    // Show resume button
+                    $resumeButton.attr("value",$resumeButton.data("labelTemplate").split("%STEP%").join(action.getCurrentState().getId())).show();
+                }
+                $nextButton.hide();
+                $currentState.html("").hide();
+                $stateDescription.html("").hide();
+                $stateProgress.html("").hide();
+            }).addState( (new LooseMachine.ActionState("state1"))
+                    .onEnter(function(actionState) {
+                            $currentState.html("Current state: "+actionState.getId()).show();
+                            $nextButton.attr("value",$nextButton.data("labelTemplate").split("%STEP%").join("state2")).show();
+                            $stateDescription.html("This is the first step, go ahead...").show();
+                            $stateProgress.html("1  2  3  4\n>--|--|--|").show();
+                    })
+                    .onLeave(function(actionState) {})
+                    .addHandler("next", function(actionState) {
+                        actionState.getAction().getState("state2").enter();
+                    })
+            ).addState( (new LooseMachine.ActionState("state2"))
+                    .onEnter(function(actionState) {
+                            $currentState.html("Current state: "+actionState.getId()).show();
+                            $nextButton.attr("value",$nextButton.data("labelTemplate").split("%STEP%").join("persistent-state")).show();
+                            $stateDescription.html("This is the second step, if you begin another action, this one will be resetted automatically. Next step is a save-point, if you leave right now you'll start from step 1 if you resume the process.").show();
+                            $stateProgress.html("1  2  3  4\n|-->--|--|").show();
+                    })
+                    .onLeave(function(actionState) {})
+                    .addHandler("next", function(actionState) {
+                        actionState.getAction().getState("persistent-state").enter();
+                    })
+            ).addState( (new LooseMachine.ActionState("persistent-state", {persist: true} /* This is a persistent action, you can leave the process here and it will continue from this next time */))
+                    .onEnter(function(actionState, isResume) {
+                            $currentState.html("Current state: "+actionState.getId()).show();
+                            $nextButton.attr("value",$nextButton.data("labelTemplate").split("%STEP%").join("complete-state")).show();
+                            $stateDescription.html("This step is persistent, you can leave now by going to another action and you'll continue from this step if you resume the process.").show();
+                            $stateProgress.html("1  2  3  4\n|--|-->--|").show();
+                    })
+                    .onLeave(function(actionState) {})
+                    .addHandler("next", function(actionState) {
+                        actionState.getAction().getState("complete-state").enter();
+                    })
+            ).addState( (new LooseMachine.ActionState("complete-state"))
+                    .onEnter(function(actionState) {
+                            $currentState.html("Current state: "+actionState.getId()).show();
+                            $nextButton.hide();
+                            $stateDescription.html("This is the fourth step, the action has been completed").show();
+                            $stateProgress.html("1  2  3  4\n|--|--|-->").show();
+                            alert("### ACTION COMPLETED! ###");
+                            actionState.runHandler("complete");
+                    })
+                    .onLeave(function(actionState) {})
+                    .addHandler("complete", function(actionState) {
+                        // Save data or do whatever you want
+                        actionState.getAction().leave(); // Leave the action, it will be automatically reseted
+                    })
+            );
+
+        // Begin button
+        $beginButton = $("<input type='button' value='BEGIN'/>").on("click",function(){
+            action.enter();
+        });
+        $beginButton.appendTo($content);
+
+        // Resume button
+        $resumeButton = $("<input type='button'/>").hide().on("click",function(){
+            action.enter();
+        });
+        $resumeButton.data("labelTemplate", "RESUME at %STEP%").appendTo($content);
+
+        // Next step button
+        $nextButton = $("<input type='button'/>").hide().on("click",function(){
+            action.getCurrentState().runHandler("next");
+        });
+        $nextButton.data("labelTemplate", "CONTINUE to %STEP% >").appendTo($content);
+
+        // currentState
+        $currentState = $("<p style='font-weight:bold'></p>").hide();
+        $currentState.appendTo($content);
+
+        // stateDescription
+        $stateDescription = $("<p style='color:#666;font-size:8pt'></p>").hide();
+        $stateDescription.appendTo($content);
+
+        // stateProgress
+        $stateProgress = $("<pre></pre>").hide();
+        $stateProgress.appendTo($content);
+
+        return action;
+    }
+</script>
+
+</body>
+</html>
