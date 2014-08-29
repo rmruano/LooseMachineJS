@@ -1,11 +1,12 @@
 LooseMachineJS
 ==============
 
-A simple, easy to use JavaScript library for creating powerfool "loose" state machines with complete freedom. If you're looking for a standard FSM implementation take a look at the awesome https://github.com/jakesgordon/javascript-state-machine
+A simple, easy to use JavaScript library for creating powerfool "loose" state machines with complete freedom, specially suited for complex scenarios. No dependencies required. If you're looking for a standard FSM implementation take a look at the awesome https://github.com/jakesgordon/javascript-state-machine
 
-Interactive demo
-----------------
+Interactive demos
+-----------------
 https://rawgit.com/rmruano/LooseMachineJS/master/demo_advanced.html
+https://rawgit.com/rmruano/LooseMachineJS/master/demo_basic.html
 
 Objects
 -------
