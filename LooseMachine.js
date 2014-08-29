@@ -2,17 +2,6 @@
  * @author https://github.com/rmruano
  * @license https://github.com/rmruano/LooseMachineJs/blob/master/LICENSE
  */
-
-/*****************************************************************************************
- * ▼ ACTION HANDLING: In house library for handling Actions & ActionStates
- * Actions behave like an overpowered State Machine, wich handles Action & States
- * They're not meant to be extended, events can be registered to handle custom code.
- * No dependencies used other than self.
- *****************************************************************************************/
-/**
- * Listens for enter/leave events for registered actions & action states and keeps
- * them synchronized while tracking the current action shown
- */
 (function(){
     var self = this;
     window.LooseMachine = this;
@@ -37,6 +26,10 @@
         // Return extended options
         return options;
     };
+    /**
+     * Listens for enter/leave events for registered actions & action states and keeps
+     * them synchronized while tracking the current action shown
+     */
     this.Director = function() {
         var debug = false;
         var currentAction = false;
