@@ -3,6 +3,10 @@ LooseMachineJS
 
 A simple, easy to use JavaScript library for creating powerfool "loose" state machines with complete freedom. If you're looking for a standard FSM implementation take a look at the awesome https://github.com/jakesgordon/javascript-state-machine
 
+Interactive demo
+----------------
+https://rawgit.com/rmruano/LooseMachineJS/master/demo_advanced.html
+
 What is an ...? 
 ---------------
 #### LooseMachine.Action
