@@ -7,8 +7,8 @@ Interactive demo
 ----------------
 https://rawgit.com/rmruano/LooseMachineJS/master/demo_advanced.html
 
-What is an ...? 
----------------
+Objects
+-------
 #### LooseMachine.Action
 It's a state machine, it can contain infinite LooseMachine.ActionState with no particular order or restrictions, your code determines the workflow.
 
