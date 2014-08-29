@@ -3,10 +3,6 @@
  * @license https://github.com/rmruano/LooseMachineJs/blob/master/LICENSE
  */
 
-/**
- * Listens for enter/leave events for registered actions & action states and keeps
- * them synchronized while tracking the current action shown
- */
 var LooseMachine = LooseMachine || {};
 
 LooseMachine.extendOptions = function( defaults, newOptions ) {
